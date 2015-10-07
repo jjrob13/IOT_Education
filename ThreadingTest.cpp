@@ -43,6 +43,7 @@
 #undef SERVO_DEBUG
 
 
+using upm::GroveButton;
 int running = 1;
 
 void sigHandler(int signo)
@@ -66,7 +67,7 @@ void addSensorToStream(std::stringstream &outputJson, const char *name, int id, 
 
 void * sensorOutputThread(void * clientfdPointer)
 {
-	upm::GroveButton *button = new upm::GroveButton(4);
+	GroveButton button(4);
 	// This value will be set to -1 on write error.
 	int bytesSent, clientfd = *(int *) clientfdPointer;
 
@@ -75,7 +76,7 @@ void * sensorOutputThread(void * clientfdPointer)
 		std::stringstream json;
 		json << "{\"sensors\": [";
 
-		int buttonValue = button->value();
+		int buttonValue = button.value();
 
 		addSensorToStream(json, "touch", 0, buttonValue);
 
@@ -277,7 +278,7 @@ int getWifiClient()
 int getBTClient()
 {
 	struct sockaddr_rc loc_addr = { 0 }, rem_addr = { 0 };
-	char buf[1024] = { 0 };
+	//char buf[1024] = { 0 };
 	int s, client;
 	socklen_t opt = sizeof(rem_addr);
 
