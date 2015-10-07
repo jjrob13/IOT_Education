@@ -93,6 +93,9 @@ void * sensorOutputThread(void * clientfdPointer)
 		// 100 ms = 100,000 us.
 		usleep(SENSOR_POLLING_TIME);
 	}
+
+	//returning void * type to satisfy pthread_create
+	return NULL;
 }
 
 void * servoInputThread(void * clientfdPointer)
@@ -202,6 +205,8 @@ void * servoInputThread(void * clientfdPointer)
 			delete input;
 		}
 	}
+	//returning void * type to satisfy pthread_create
+	return NULL;
 }
 
 int getWifiClient()

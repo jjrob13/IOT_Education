@@ -1,5 +1,5 @@
 CC = g++
-
+CFLAGS += -Wall
 LDFLAGS = -lmraa -lupm-grove -lpthread
 
 all: thread_test
