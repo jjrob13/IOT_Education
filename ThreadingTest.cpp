@@ -2,7 +2,7 @@
 //#include "grove.h"
 
 #include <mraa.hpp>
-#include <upm/grove.h>
+#include "include/grove.h"
 
 //#include <unistd.h>
 #include <pthread.h>
@@ -42,8 +42,8 @@
 
 #undef SERVO_DEBUG
 
-
 using upm::GroveButton;
+
 int running = 1;
 
 void sigHandler(int signo)
