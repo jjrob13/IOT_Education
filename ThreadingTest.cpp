@@ -2,7 +2,7 @@
 //#include "grove.h"
 
 #include <mraa.hpp>
-#include "include/grove.h"
+#include <upm/grove.h>
 
 //#include <unistd.h>
 #include <pthread.h>
