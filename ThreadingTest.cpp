@@ -2,7 +2,6 @@
 //#include "grove.h"
 
 #include <mraa.hpp>
-#include <upm/grove.h>
 
 //#include <unistd.h>
 #include <pthread.h>
@@ -21,7 +20,7 @@
 
 // JSON Library: https://github.com/miloyip/rapidjson
 #include "include/rapidjson/document.h"
-
+#include "include/grove.h"
 #include "VexMotorController.h"
 
 // This is the size of the buffer used to read data from ASU-VPL.
@@ -346,10 +345,10 @@ int main(int argc, char *argv[])
 	signal(SIGINT, sigHandler);
 
 	pthread_create(&outputThread, NULL, sensorOutputThread, (void *) &clientfd);
-	pthread_create(&inputThread, NULL, servoInputThread, (void *) &clientfd);
+	//pthread_create(&inputThread, NULL, servoInputThread, (void *) &clientfd);
 
 	pthread_join(outputThread, NULL);
-	pthread_join(inputThread, NULL);
+	//pthread_join(inputThread, NULL);
 
 	printf("Threads have been shut down. Proceeding to close socket.\n");
 	close(clientfd);
