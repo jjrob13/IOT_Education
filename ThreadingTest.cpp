@@ -43,7 +43,7 @@
 
 using upm::GroveButton;
 
-int running = 1;
+int running;
 
 void sigHandler(int signo)
 {
@@ -84,11 +84,12 @@ void * sensorOutputThread(void * clientfdPointer)
 
 		const char *toWrite = json.str().c_str();
 
-		//TODO: Find send declaration or implement
 		bytesSent = send(clientfd, toWrite, strlen(toWrite), 0);
 
-		if (bytesSent == -1)
+		if (bytesSent == -1){
 			printf("Failed to send sensor data!\n");
+			running = 0;
+		}
 
 		// 100 ms = 100,000 us.
 		usleep(SENSOR_POLLING_TIME);
@@ -209,11 +210,12 @@ void * servoInputThread(void * clientfdPointer)
 	return NULL;
 }
 
-int getWifiClient()
+int getWifiSocket()
 {
 	int status;
 	struct addrinfo hostInfo;
 	struct addrinfo *hostInfoList;
+	int socketfd; // The socket descriptor
 
 	// The MAN page of getaddrinfo() states "All  the other fields in the structure pointed
 	// to by hints must contain either 0 or a null pointer, as appropriate." When a struct
@@ -222,7 +224,6 @@ int getWifiClient()
 	memset(&hostInfo, 0, sizeof(hostInfo));
 
 	hostInfo.ai_flags = AI_PASSIVE;
-	//TODO: find getaddrinfo and corresponding params
 	status = getaddrinfo(NULL, "8124", &hostInfo, &hostInfoList);
 
 	if (status != 0)
@@ -232,7 +233,6 @@ int getWifiClient()
 	}
 
 	printf("Creating a Wi-Fi socket...\n");
-	int socketfd; // The socket descriptor
 	socketfd = socket(hostInfoList->ai_family, hostInfoList->ai_socktype, hostInfoList->ai_protocol);
 	if (socketfd == -1)
 		printf("Socket error.");
@@ -266,15 +266,10 @@ int getWifiClient()
 		return -1;
 	}
 
-	int clientfd;
-	clientfd = accept(socketfd, NULL, NULL);
-
-	printf("Connected to client.\n");
-
-	return clientfd;
+	return socketfd;
 }
 
-int getBTClient()
+int getBTSocket()
 {
 	struct sockaddr_rc loc_addr = { 0 }, rem_addr = { 0 };
 	//char buf[1024] = { 0 };
@@ -301,25 +296,17 @@ int getBTClient()
 	// put socket into listening mode
 	listen(s, 1);
 
-	// accept one connection
-	client = accept(s, (struct sockaddr *)&rem_addr, &opt);
-
-	printf("Connected to client.\n");
-
-	//ba2str( &rem_addr.rc_bdaddr, buf );
-	//fprintf(stderr, "accepted connection from %s\n", buf);
-
-	return client;
+	return s;
 }
 
 int main(int argc, char *argv[])
 {
 	pthread_t inputThread, outputThread;
-	int clientfd;
+	int clientfd, socketfd;
 
 	int argumentCount = argc;
 	bool bluetoothEnabled = false;
-
+	
 	
 	// Check to see if the user passed in the bluetooth flag.
 	if (argumentCount > 1)
@@ -329,29 +316,51 @@ int main(int argc, char *argv[])
 
 	if (bluetoothEnabled)
 	{
-		clientfd = getBTClient();
+		socketfd = getBTSocket();
 	}
 	else
 	{
-		clientfd = getWifiClient();
+		socketfd = getWifiSocket();
 	}
 
-	if (clientfd == 0 || clientfd == -1)
+	if (socketfd == 0 || socketfd == -1)
 	{
 		printf("Connection failure. Aborting.\n");
 		return -1;
 	}
-
+	
+	//SIGINT should halt running threads
 	signal(SIGINT, sigHandler);
 
-	pthread_create(&outputThread, NULL, sensorOutputThread, (void *) &clientfd);
-	//pthread_create(&inputThread, NULL, servoInputThread, (void *) &clientfd);
+	//loop so we can have multiple sessions without having to reboot the robot
+	//we have one process to handle requests and one to create and join the threads
+	while ((clientfd = accept(socketfd, NULL, NULL)) > 0){
+		//threads should be running by default
+		running = 1;
 
-	pthread_join(outputThread, NULL);
-	//pthread_join(inputThread, NULL);
+		printf("Connected to client.\n");
+		
+		//fork a process to handle the request
+		if(fork() != 0){
+			//the listening process is the only one that needs a handle to the socketfd
+			close(socketfd);
 
-	printf("Threads have been shut down. Proceeding to close socket.\n");
-	close(clientfd);
+			//handle the requests
+			pthread_create(&outputThread, NULL, sensorOutputThread, (void *) &clientfd);
+			//pthread_create(&inputThread, NULL, servoInputThread, (void *) &clientfd);
+
+			pthread_join(outputThread, NULL);
+			//pthread_join(inputThread, NULL);
+			
+			printf("Threads have been shut down. Proceeding to close socket.\n");
+			close(clientfd);
+			exit(0); //request has been handled
+		}
+		close(clientfd);
+	}
+	//
+	printf("Connection error. Closing socket.");
+	close(socketfd);
 
 	return MRAA_SUCCESS;
 }
