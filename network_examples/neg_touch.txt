@@ -1,0 +1,2 @@
+{"sensors" : [{"name" : "touch", "id" : 0, "value" : 0}]}
+

@@ -1,1 +1,1 @@
-{"sensors" : [{"name" : "touch", "id" : 0, "value" : 0}]}
+{"sensors" : [{"name" : "touch", "id" : 0, "value" : 0}, {"name" : "distance", "id" : 1, "value" : 50}]}

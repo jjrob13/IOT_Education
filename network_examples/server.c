@@ -15,6 +15,14 @@ void error(const char *msg)
 	        exit(1);
 }
 
+
+int
+my_write(int socket, char * string, int len)
+{
+	printf("%s", string);
+	return write(socket, string, len);
+
+}
 void
 write_test(int socketfd)
 {
@@ -29,13 +37,41 @@ write_test(int socketfd)
 	for(i = 0;1; i++)
 	{
 
-		if(i % 10)
+		if(i % 10 == 0)
 		{
-			n = write(socketfd, pos_json_string, strlen(pos_json_string));
+			n = my_write(socketfd, pos_json_string, strlen(pos_json_string));
 			if (n < 0) error("ERROR writing to socket");
 		}else
 		{
-			n = write(socketfd, neg_json_string, strlen(neg_json_string));
+			n = my_write(socketfd, neg_json_string, strlen(neg_json_string));
+		}
+		sleep(1);
+
+	}
+
+}
+
+void
+write_touch_test(int socketfd)
+{
+	char buffer[256];
+	int n, i;
+	char *pos_filename = "pos_touch.txt";
+	char pos_json_string[255];
+	char *neg_filename = "neg_touch.txt";
+	char neg_json_string[255];
+	read_from_file(pos_filename, pos_json_string);
+	read_from_file(neg_filename, neg_json_string);
+	for(i = 0;1; i++)
+	{
+
+		if(i % 10 == 0)
+		{
+			n = my_write(socketfd, pos_json_string, strlen(pos_json_string));
+			if (n < 0) error("ERROR writing to socket");
+		}else
+		{
+			n = my_write(socketfd, neg_json_string, strlen(neg_json_string));
 		}
 		sleep(1);
 
@@ -99,14 +135,18 @@ int main(int argc, char *argv[])
 {
 	int sockfd, newsockfd, portno;
 
-	if (argc < 2) {
+	if (argc < 3) {
 		fprintf(stderr,"ERROR, no port provided\n");
 		exit(1);
 	}
 	portno = atoi(argv[1]);
 	connect_to_client(&sockfd, &newsockfd, portno);
-	//write_test(newsockfd);
-	read_test(newsockfd);
+	if(atoi(argv[2]) == 1)
+		write_test(newsockfd);
+	else if(atoi(argv[2]) == 2)
+		write_touch_test(newsockfd);
+	else if(atoi(argv[2]) == 3)
+		read_test(newsockfd);
 	close(sockfd);
 	close(newsockfd);
 	return 0; 
