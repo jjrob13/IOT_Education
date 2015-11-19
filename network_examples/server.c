@@ -7,8 +7,21 @@
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <signal.h>
+#include <errno.h>
 
 void read_from_file(char*, char*);
+int connected, client_sockfd;
+void
+close_connection(int signum)
+{
+	if(signum == SIGPIPE){
+		connected = 0;
+		close(client_sockfd);
+		client_sockfd = -1;
+	}
+}
+
 void error(const char *msg)
 {
 	    perror(msg);
@@ -34,13 +47,12 @@ write_test(int socketfd)
 	char neg_json_string[255];
 	read_from_file(pos_filename, pos_json_string);
 	read_from_file(neg_filename, neg_json_string);
-	for(i = 0;1; i++)
+	for(i = 0;connected; i++)
 	{
 
 		if(i % 10 == 0)
 		{
 			n = my_write(socketfd, pos_json_string, strlen(pos_json_string));
-			if (n < 0) error("ERROR writing to socket");
 		}else
 		{
 			n = my_write(socketfd, neg_json_string, strlen(neg_json_string));
@@ -62,13 +74,12 @@ write_touch_test(int socketfd)
 	char neg_json_string[255];
 	read_from_file(pos_filename, pos_json_string);
 	read_from_file(neg_filename, neg_json_string);
-	for(i = 0;1; i++)
+	for(i = 0;connected; i++)
 	{
 
 		if(i % 10 == 0)
 		{
 			n = my_write(socketfd, pos_json_string, strlen(pos_json_string));
-			if (n < 0) error("ERROR writing to socket");
 		}else
 		{
 			n = my_write(socketfd, neg_json_string, strlen(neg_json_string));
@@ -84,7 +95,7 @@ read_test(int newsockfd)
 {
 	char buffer[256];
 	int n;
-	while(1)
+	while(connected)
 	{
 		bzero(buffer,256);
 		n = read(newsockfd,buffer,255);
@@ -95,33 +106,44 @@ read_test(int newsockfd)
 
 }
 
-void
-connect_to_client(int * sockfd, int * newsockfd, int portno)
+int
+connect_to_client(int sockfd)
 {
-	struct sockaddr_in serv_addr, cli_addr;
-	socklen_t clilen;
-	*sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (*sockfd < 0) 
-		error("ERROR opening socket");
-	bzero((char *) &serv_addr, sizeof(serv_addr));
+	int newsockfd, clilen;
+	struct sockaddr_in cli_addr;
 
+
+	listen(sockfd,5);
+	clilen = sizeof(cli_addr);
+	newsockfd = accept(sockfd, 
+		(struct sockaddr *) &cli_addr, 
+		&clilen);
+	if (newsockfd < 0) 
+		error("ERROR on accept");
+	return newsockfd;
+}
+
+int
+open_server_socket(int portno)
+{
+	struct sockaddr_in serv_addr;
+	int enable = 1;
+	int sockfd;
+	socklen_t clilen;
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd < 0) 
+		error("ERROR opening socket");
+	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
+	bzero((char *) &serv_addr, sizeof(serv_addr));
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
 	serv_addr.sin_port = htons(portno);
-	if (bind(*sockfd, (struct sockaddr *) &serv_addr,
+	if (bind(sockfd, (struct sockaddr *) &serv_addr,
 		sizeof(serv_addr)) < 0) 
 		error("ERROR on binding");
-	listen(*sockfd,5);
-	clilen = sizeof(cli_addr);
-	*newsockfd = accept(*sockfd, 
-		(struct sockaddr *) &cli_addr, 
-		&clilen);
-	if (*newsockfd < 0) 
-		error("ERROR on accept");
-
+	return sockfd;
 
 }
-
 void
 read_from_file(char * filename, char * file_contents)
 {
@@ -133,21 +155,28 @@ read_from_file(char * filename, char * file_contents)
 
 int main(int argc, char *argv[])
 {
-	int sockfd, newsockfd, portno;
-
+	int server_sockfd, portno;
 	if (argc < 3) {
 		fprintf(stderr,"ERROR, no port provided\n");
 		exit(1);
 	}
 	portno = atoi(argv[1]);
-	connect_to_client(&sockfd, &newsockfd, portno);
-	if(atoi(argv[2]) == 1)
-		write_test(newsockfd);
-	else if(atoi(argv[2]) == 2)
-		write_touch_test(newsockfd);
-	else if(atoi(argv[2]) == 3)
-		read_test(newsockfd);
-	close(sockfd);
-	close(newsockfd);
+	server_sockfd = open_server_socket(portno);
+
+	signal(SIGPIPE, close_connection);
+
+	while(1)
+	{
+		client_sockfd = connect_to_client(server_sockfd);
+		connected = 1;
+
+		if(atoi(argv[2]) == 1)
+			write_test(client_sockfd);
+		else if(atoi(argv[2]) == 2)
+			write_touch_test(client_sockfd);
+		else if(atoi(argv[2]) == 3)
+			read_test(client_sockfd);
+	}
+	close(server_sockfd);
 	return 0; 
 }
