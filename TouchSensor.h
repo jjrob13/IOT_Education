@@ -19,7 +19,7 @@ public:
 		}
 	}
 
-	~TouchSensor()
+	~TouchSensor() : ~Sensor()
 	{
 		delete this->m_touchSensor;
 	}

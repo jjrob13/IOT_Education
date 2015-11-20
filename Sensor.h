@@ -11,7 +11,7 @@ public:
 	string name();
 	int id();
 	virtual float value() = 0;
-	virtual ~Sensor() = 0;
+	virtual ~Sensor() {}
 protected:
 	int m_id;
 	string m_name;
