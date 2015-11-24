@@ -7,7 +7,7 @@ using std::string;
 class Sensor
 {
 public:
-	Sensor(int pin, int id, string name);
+	Sensor(int id, string name);
 	string name();
 	int id();
 	virtual float value() = 0;
@@ -15,7 +15,6 @@ public:
 protected:
 	int m_id;
 	string m_name;
-	int m_pin;
 };
 
 #endif //_SENSOR_H

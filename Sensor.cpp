@@ -1,8 +1,7 @@
 #include "Sensor.h"
 
-Sensor::Sensor(int pin, int id, string name)
+Sensor::Sensor(int id, string name)
 {
-	this->m_pin = pin;
 	this->m_id = id;
 	this->m_name = name;
 

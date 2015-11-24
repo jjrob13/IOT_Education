@@ -1,6 +1,6 @@
-CC = g++
+CC = g++ -std=c++11
 CFLAGS += -Wall
-LDFLAGS = -lmraa -lupm-grove -lpthread
+LDFLAGS = -lmraa -lupm-grove -lpthread -lupm-hcsr04
 
 all: thread_test sensor_out
 
@@ -13,7 +13,7 @@ ThreadingTest.o: ThreadingTest.cpp VexMotorController.h include/grove.h include/
 VexMotorController.o: VexMotorController.cpp
 	${CC} -c VexMotorController.cpp ${CFLAGS} ${LDFLAGS}
 
-sensor_out: sensor_out.o Sensor.o TouchSensor.h
+sensor_out: sensor_out.o Sensor.o TouchSensor.h UltrasonicSensor.h
 	${CC} -o $@ sensor_out.o Sensor.o ${CFLAGS} ${LDFLAGS}
 
 Sensor.o: Sensor.h Sensor.cpp
@@ -22,5 +22,5 @@ Sensor.o: Sensor.h Sensor.cpp
 sensor_out.o: sensor_out.cpp
 	${CC} -c sensor_out.cpp ${CFLAGS} ${LDFLAGS}
 clean:
-	rm -f example *.o *.core
+	rm -f example *.o *.core *.gch
 

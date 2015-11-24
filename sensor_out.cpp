@@ -3,6 +3,7 @@
 #include <mraa.hpp>
 #include "Sensor.h"
 #include "TouchSensor.h"
+#include "UltrasonicSensor.h"
 #include <sstream>
 #include <stdlib.h>
 #include <vector>
@@ -274,10 +275,13 @@ Routine Description:
 
 */
 #define TOUCH_PIN1 2
+#define US1_TRIG_PIN 13
+#define US1_ECHO_PIN 12
 void
 init_sensors()
 {
-	sensors.push_back(new TouchSensor(TOUCH_PIN1, 0, "touch"));
+	sensors.push_back(new TouchSensor(TOUCH_PIN1, 0));
+	sensors.push_back(new UltrasonicSensor(US1_TRIG_PIN, US1_ECHO_PIN, 1));
 }
 
 /*
