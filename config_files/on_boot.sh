@@ -3,5 +3,4 @@
 /usr/bin/hciconfig hci0 up
 /usr/bin/hciconfig hci0 piscan
 systemctl start obex
-python /home/root/ArduinoFiles/ip.py
-nohup Capstone/thread_test >> log/thread_test.log&
+python /home/root/IOT_Education/config_files/ip.py
