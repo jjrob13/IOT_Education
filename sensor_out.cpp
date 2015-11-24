@@ -230,9 +230,13 @@ write_sensor_data(void * client_sockfd_)
 {
 	//get local integer copy of client_sockfd
 	int client_sockfd = *(int *)client_sockfd_;
+	std::stringstream json;
 	while(client_connected)
 	{
-		std::stringstream json;
+		//clear the stream
+		json.str(std::string());
+
+		//create the json string
 		json << "{\"sensors\": [";
 		for(int i = 0; i < sensors.size() - 1; i++)
 		{
@@ -264,8 +268,11 @@ void
 send_string_to_client(int clientfd, const char * str_to_write)
 {
 	int n = write(clientfd, str_to_write, strlen(str_to_write));
+	//if we fail to write, disconnect, by setting client_connected to 0
 	if(n < 0)
-		error("ERROR writing to client");
+	{
+		client_connected = 0;
+	}
 }
 
 /*
