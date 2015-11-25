@@ -247,7 +247,7 @@ write_sensor_data(void * client_sockfd_)
 
 		//add final sensor to json (no comma afterward)
 		add_sensor_to_stream(json, sensors[sensors.size() - 1]);
-		json << "]}";
+		json << "]}\n";
 
 		//send the json string to the client
 		send_string_to_client(client_sockfd, json.str().c_str());
@@ -267,7 +267,7 @@ add_sensor_to_stream(std::stringstream &outputJson, Sensor * sensor)
 void
 send_string_to_client(int clientfd, const char * str_to_write)
 {
-	int n = write(clientfd, str_to_write, strlen(str_to_write));
+	int n = send(clientfd, str_to_write, strlen(str_to_write), 0);
 	//if we fail to write, disconnect, by setting client_connected to 0
 	if(n < 0)
 	{
