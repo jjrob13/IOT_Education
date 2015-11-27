@@ -34,8 +34,8 @@ import struct
 import pyupm_i2clcd as lcd
 
 #how long we are willing to wait to get an ip address
-TIMEOUT_TIME = 4 #seconds
-RECONNECTION_TIME = 0.1
+TIMEOUT_TIME = 120 #seconds
+RECONNECTION_TIME = 1
 
 
 CONNECTION_ATTEMPTS = TIMEOUT_TIME / RECONNECTION_TIME
@@ -83,3 +83,13 @@ if not ip_read:
 	myLcd.clear()
 	myLcd.setCursor(0,10)
 	myLcd.write("   No IP Address")
+
+
+"""
+On some Edisons, the lcd screen would go out immediately after the program
+ceased execution.  To mitigate this, we simply have the process loop in
+the background.  Only on a successful attempt, of course.
+"""
+SLEEP_TIME = 600 #seconds
+while ip_read: 
+	sleep(SLEEP_TIME)
