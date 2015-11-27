@@ -2,12 +2,14 @@
 #define _SERVO_CONTROLLER_H
 #include <math.h>
 #include <cassert>
-#include <stdio.h>
+#include <iostream>
 #include <mraa.hpp>
 #define PERIOD_US 20000
 #define HIGH_PULSEWIDTH_US 1700
 #define NEUTRAL_PULSEWIDTH_US 1500
 #define LOW_PULSEWIDTH_US 1300
+using std::cout;
+using std::endl;
 class ServoController{
 
 public:
@@ -75,15 +77,25 @@ void set_speed(float speed)
 	int pulsewidth_us;
 	if(speed >= 0)
 	{
+		int diff = (this->m_high_pulsewidth_us - this->m_neutral_pulsewidth_us);
+		cout << "diff = " << diff << endl;
+		float scaled_diff = speed * (this->m_high_pulsewidth_us - this->m_neutral_pulsewidth_us);
+		cout << "scaled_diff = " << scaled_diff << endl;
+		float rounded_scaled_diff = round(scaled_diff);
+		cout << "rounded_scaled_diff = " << rounded_scaled_diff << endl;
 		pulsewidth_us = this->m_neutral_pulsewidth_us + int(round(speed * (this->m_high_pulsewidth_us - this->m_neutral_pulsewidth_us)));
+		
+		cout << "pulsewidth_us = " << pulsewidth_us << endl;
 	}
 	else
 	{
 		pulsewidth_us = this->m_neutral_pulsewidth_us - int(round(speed * (this->m_neutral_pulsewidth_us - this->m_low_pulsewidth_us)));
 	}
 
+	//assert(pulsewidth_us >= this->m_low_pulsewidth_us);
+	//assert(pulsewidth_us <= this->m_high_pulsewidth_us);
 	//set the correct pulsewidth to the servo
-	this->m_pwm->pulsewidth_us(pulsewidth_us);
+	//this->m_pwm->pulsewidth_us(pulsewidth_us);
 
 }
 };
