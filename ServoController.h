@@ -16,45 +16,22 @@ class ServoController{
 public:
 int m_pin;
 int m_period_us;
-int m_high_pulsewidth_us;
-int m_neutral_pulsewidth_us;
-int m_low_pulsewidth_us;
-mraa::Pwm * m_pwm;
+mraa::Pwm * mraa_pwm;
 
 ServoController(int pin)
 {
-	/*
 	this->m_pin = pin;
-	this->m_period_us = PERIOD_US;
-	this->m_high_pulsewidth_us = HIGH_PULSEWIDTH_US;
-	this->m_neutral_pulsewidth_us = NEUTRAL_PULSEWIDTH_US;
-	this->m_low_pulsewidth_us = LOW_PULSEWIDTH_US;
-	*/
-	ServoController(pin, PERIOD_US, HIGH_PULSEWIDTH_US, NEUTRAL_PULSEWIDTH_US, LOW_PULSEWIDTH_US);
-}
-
-ServoController(int pin, int period_us, int high_pulsewidth_us, int neutral_pulsewidth_us, int low_pulsewidth_us)
-{
-	//input checking
-	assert(high_pulsewidth_us >= neutral_pulsewidth_us && neutral_pulsewidth_us >=  low_pulsewidth_us);
-		
-	this->m_pin = pin;
-	this->m_period_us = period_us;
-	this->m_high_pulsewidth_us = high_pulsewidth_us;
-	this->m_neutral_pulsewidth_us = neutral_pulsewidth_us;
-	this->m_low_pulsewidth_us = low_pulsewidth_us;
-	this->m_pwm = new mraa::Pwm(pin);
-	if (this->m_pwm == NULL)
+	this->mraa_pwm = new mraa::Pwm(pin);
+	if (this->mraa_pwm == NULL)
 		printf("Error");
-	this->m_pwm->enable(true);
-	this->m_pwm->period_us(period_us);
+	this->mraa_pwm->enable(true);
+	this->mraa_pwm->period_us(PERIOD_US);
 	this->set_speed(0);
-
 }
 
 ~ServoController()
 {
-	delete this->m_pwm;
+	delete this->mraa_pwm;
 }
 /*
 INPUT:
@@ -78,25 +55,23 @@ void set_speed(float speed)
 	int pulsewidth_us;
 	if(speed >= 0)
 	{
-		int diff = (this->m_high_pulsewidth_us - this->m_neutral_pulsewidth_us);
-		cout << "diff = " << diff << endl;
-		float scaled_diff = speed * (this->m_high_pulsewidth_us - this->m_neutral_pulsewidth_us);
-		cout << "scaled_diff = " << scaled_diff << endl;
+		int diff = (HIGH_PULSEWIDTH_US - NEUTRAL_PULSEWIDTH_US);
+		float scaled_diff = speed * diff;
 		float rounded_scaled_diff = round(scaled_diff);
-		cout << "rounded_scaled_diff = " << rounded_scaled_diff << endl;
-		pulsewidth_us = this->m_neutral_pulsewidth_us + int(round(speed * (this->m_high_pulsewidth_us - this->m_neutral_pulsewidth_us)));
-		
-		cout << "pulsewidth_us = " << pulsewidth_us << endl;
+		pulsewidth_us = NEUTRAL_PULSEWIDTH_US + int(rounded_scaled_diff);
 	}
 	else
 	{
-		pulsewidth_us = this->m_neutral_pulsewidth_us - int(round(speed * (this->m_neutral_pulsewidth_us - this->m_low_pulsewidth_us)));
+		int diff = (NEUTRAL_PULSEWIDTH_US - LOW_PULSEWIDTH_US);
+		float scaled_diff = speed * diff;
+		float rounded_scaled_diff = round(scaled_diff);
+		pulsewidth_us = NEUTRAL_PULSEWIDTH_US + int(rounded_scaled_diff);
 	}
 
-	//assert(pulsewidth_us >= this->m_low_pulsewidth_us);
-	//assert(pulsewidth_us <= this->m_high_pulsewidth_us);
+	assert(pulsewidth_us >= LOW_PULSEWIDTH_US);
+	assert(pulsewidth_us <= HIGH_PULSEWIDTH_US);
 	//set the correct pulsewidth to the servo
-	//this->m_pwm->pulsewidth_us(pulsewidth_us);
+	this->mraa_pwm->pulsewidth_us(pulsewidth_us);
 
 }
 };
