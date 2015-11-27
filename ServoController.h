@@ -1,6 +1,6 @@
 #ifndef _SERVO_CONTROLLER_H
 #define _SERVO_CONTROLLER_H
-#include <math.h>
+#include <cmath>
 #include <cassert>
 #include <iostream>
 #include <mraa.hpp>
@@ -10,6 +10,7 @@
 #define LOW_PULSEWIDTH_US 1300
 using std::cout;
 using std::endl;
+using std::round;
 class ServoController{
 
 public:
