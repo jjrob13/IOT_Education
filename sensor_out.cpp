@@ -23,8 +23,8 @@ int listen_and_connect_to_client(int);
 void service_client(int);
 void client_disconnected(int);
 void * write_sensor_data(void *);
-void init_sensors();
-void cleanup_sensors();
+void init_sensors_and_servos();
+void cleanup_sensors_and_servos();
 void add_sensor_to_stream(std::stringstream &outputJson, Sensor * sensor);
 void send_string_to_client(int clientfd, const char * str_to_write);
 void error(const char *msg);
@@ -55,7 +55,7 @@ int main()
 {
 	int server_sockfd, client_sockfd;
 	
-	init_sensors();
+	init_sensors_and_servos();
 
 	server_sockfd = open_server_socket();
 	signal(SIGPIPE, client_disconnected);
@@ -74,7 +74,7 @@ int main()
 	}
 	close(server_sockfd);
 
-	cleanup_sensors();
+	cleanup_sensors_and_servos();
 	return 0;
 }
 
@@ -285,7 +285,7 @@ Routine Description:
 #define US1_TRIG_PIN 13
 #define US1_ECHO_PIN 12
 void
-init_sensors()
+init_sensors_and_servos()
 {
 	sensors.push_back(new TouchSensor(TOUCH_PIN1, 0));
 	sensors.push_back(new UltrasonicSensor(US1_TRIG_PIN, US1_ECHO_PIN, 1));
@@ -298,12 +298,15 @@ Cleans up all memory associated with the Sensor objects.
 
 */
 void
-cleanup_sensors()
+cleanup_sensors_and_servos()
 {
+	//Cleanup all sensor objects
 	for(vector<Sensor*>::iterator it = sensors.begin(); it != sensors.end(); it++)
 	{
 		delete *it;
 	}
+
+	//Cleanup all ServoController objects
 
 }
 
