@@ -4,18 +4,22 @@
 #include "Sensor.h"
 #include "TouchSensor.h"
 #include "UltrasonicSensor.h"
+#include "ServoController.h"
+// JSON Library: https://github.com/miloyip/rapidjson
+#include "include/rapidjson/document.h"
 #include <sstream>
 #include <stdlib.h>
 #include <vector>
+#include <map>
 #include <signal.h>
 #include <netdb.h>
-
 // This is the amount of time spent waiting before sending more sensor data.
 // It is in us, so a polling time of 100,000 us = 100 ms.
 #define SENSOR_POLLING_TIME 100000
 #define PORT_NO 8124
 
 using std::vector;
+using std::map;
 using std::string;
 
 int open_server_socket();
@@ -23,6 +27,7 @@ int listen_and_connect_to_client(int);
 void service_client(int);
 void client_disconnected(int);
 void * write_sensor_data(void *);
+void * read_servo_controls(void *);
 void init_sensors_and_servos();
 void cleanup_sensors_and_servos();
 void add_sensor_to_stream(std::stringstream &outputJson, Sensor * sensor);
@@ -31,6 +36,7 @@ void error(const char *msg);
 /* GLOBAL VARS */
 int client_connected; //indicates whether a client is currently being serviced or not
 vector<Sensor*> sensors; //a vector that contains references to all sensors
+map<int, ServoController *> servo_map;
 /*
 main:
 
@@ -170,6 +176,7 @@ client_disconnected(int signum)
 		//when the client unexpectedly disconnects (SIGPIPE), we want to stop sending data and 
 		//begin listening for new clients.  This client_connected integer is used to perform this.
 		client_connected = 0;
+		cout << "Client disconnected" << endl;
 	}
 }
 
@@ -196,12 +203,83 @@ void
 service_client(int client_sockfd)
 {
 	//this thread is intended to read data from the sensors and send it to the client
-	pthread_t write_to_client;
+	pthread_t write_to_client, servo_control_input_thread;
 	pthread_create(&write_to_client, NULL, write_sensor_data, (void *) &client_sockfd);
+	pthread_create(&servo_control_input_thread, NULL, read_servo_controls, (void *) &client_sockfd);
 	pthread_join(write_to_client, NULL);
+	pthread_join(servo_control_input_thread, NULL);
 
 }
 
+/*
+read_servo_controls
+INPUT:
+client_sockfd - The file descriptor of the client, which is where the data will be read.
+
+OUTPUT:
+None
+
+Routine Description:
+
+1. If no client is connected, return
+
+2. Read JSON from the client
+
+3. Parse JSON to servo commands can be read
+
+4. Perform necessary servo commands
+
+5. Go to 1.
+
+*/
+void *
+read_servo_controls(void * client_sockfd_)
+{
+	int client_sockfd = *(int *)client_sockfd_;
+	char incomingDataBuffer[256];
+	ssize_t bytes_read;
+
+	rapidjson::Document inputJson;
+	
+	while(client_connected)
+	{
+		// We'll clear out the buffer each time to prevent data from being mixed if one message
+		// is a different size (i.e. shorter) than a previous message.
+		memset(&incomingDataBuffer, 0, sizeof(incomingDataBuffer));
+		bytes_read = read(client_sockfd, incomingDataBuffer, sizeof(incomingDataBuffer));
+
+		if (bytes_read <= 0)
+		{
+			client_connected = 0;
+			return NULL;
+		}
+		
+		inputJson.Parse(incomingDataBuffer);
+		rapidjson::Value &servos = inputJson["servos"];
+		for (rapidjson::SizeType i = 0; i < servos.Size(); i++)
+		{
+			// Each value is an object.
+			int servoId = servos[i]["servoId"].GetInt();
+			rapidjson::Value &servoSpeedValue = servos[i]["servoSpeed"];
+
+			double servoSpeed;
+			if (servoSpeedValue.IsDouble())
+				servoSpeed = servoSpeedValue.GetDouble();
+			else
+				servoSpeed = (double)servoSpeedValue.GetInt();
+			
+			//we want to check that we have this servo in our map
+			if(servo_map.count(servoId))
+			{
+				//set the desired speed
+				servo_map[servoId]->set_speed(servoSpeed);
+			}
+		}
+	}
+
+	return NULL;
+
+}
 /*
 write_sensor_data:
 INPUT:
@@ -238,7 +316,7 @@ write_sensor_data(void * client_sockfd_)
 
 		//create the json string
 		json << "{\"sensors\": [";
-		for(int i = 0; i < sensors.size() - 1; i++)
+		for(unsigned int i = 0; i < sensors.size() - 1; i++)
 		{
 			//add sensor data to stream and put comma afterward
 			add_sensor_to_stream(json, sensors[i]);
@@ -284,11 +362,15 @@ Routine Description:
 #define TOUCH_PIN1 2
 #define US1_TRIG_PIN 13
 #define US1_ECHO_PIN 12
+#define SERVO1_PIN 3
 void
 init_sensors_and_servos()
 {
 	sensors.push_back(new TouchSensor(TOUCH_PIN1, 0));
 	sensors.push_back(new UltrasonicSensor(US1_TRIG_PIN, US1_ECHO_PIN, 1));
+
+	//Insert servos into servo map
+	servo_map[SERVO1_PIN] = new ServoController(SERVO1_PIN);
 }
 
 /*
@@ -307,6 +389,11 @@ cleanup_sensors_and_servos()
 	}
 
 	//Cleanup all ServoController objects
+	for(auto it = servo_map.begin(); it != servo_map.begin(); it++)
+	{
+		//We are deleting all of the ServoController objects in the map
+		delete it->second;
+	}
 
 }
 
