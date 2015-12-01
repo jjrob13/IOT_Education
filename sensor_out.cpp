@@ -247,14 +247,18 @@ read_servo_controls(void * client_sockfd_)
 		// is a different size (i.e. shorter) than a previous message.
 		memset(&incomingDataBuffer, 0, sizeof(incomingDataBuffer));
 		bytes_read = read(client_sockfd, incomingDataBuffer, sizeof(incomingDataBuffer));
-
 		if (bytes_read <= 0)
 		{
 			client_connected = 0;
 			return NULL;
 		}
+
+		//we only want one JSON object.  Sometimes ASU-VPL sneaks in two, we are only going to select the 
+		//first json object sent
+		string input(incomingDataBuffer);
+		input = input.substr(0, input.find('\n'));
 		
-		inputJson.Parse(incomingDataBuffer);
+		inputJson.Parse(input.c_str());
 		rapidjson::Value &servos = inputJson["servos"];
 		for (rapidjson::SizeType i = 0; i < servos.Size(); i++)
 		{
@@ -271,6 +275,7 @@ read_servo_controls(void * client_sockfd_)
 			//we want to check that we have this servo in our map
 			if(servo_map.count(servoId))
 			{
+				cout << "Updating speed for servo " << servoId << " to " << servoSpeed << endl;
 				//set the desired speed
 				servo_map[servoId]->set_speed(servoSpeed);
 			}
@@ -362,7 +367,8 @@ Routine Description:
 #define TOUCH_PIN1 2
 #define US1_TRIG_PIN 13
 #define US1_ECHO_PIN 12
-#define SERVO1_PIN 3
+#define SERVO1_PIN 5
+#define SERVO2_PIN 6
 void
 init_sensors_and_servos()
 {
@@ -371,6 +377,7 @@ init_sensors_and_servos()
 
 	//Insert servos into servo map
 	servo_map[SERVO1_PIN] = new ServoController(SERVO1_PIN);
+	servo_map[SERVO2_PIN] = new ServoController(SERVO2_PIN);
 }
 
 /*
