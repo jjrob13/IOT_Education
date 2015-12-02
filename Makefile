@@ -1,5 +1,5 @@
 CC = g++ -std=c++11
-CFLAGS += -Wall
+CFLAGS += -Wall -g
 LDFLAGS = -lmraa -lupm-grove -lpthread -lupm-hcsr04
 
 all: thread_test sensor_out
