@@ -16,11 +16,13 @@ class ServoController{
 public:
 int m_pin;
 int m_period_us;
+bool m_invert;
 mraa::Pwm * mraa_pwm;
 
-ServoController(int pin)
+ServoController(int pin, bool invert = false)
 {
 	this->m_pin = pin;
+	this->m_invert = invert;
 	this->mraa_pwm = new mraa::Pwm(pin);
 	if (this->mraa_pwm == NULL)
 		printf("Error");
@@ -50,6 +52,8 @@ void set_speed(float speed)
 		speed = -1;
 	if(speed > 1)
 		speed = 1;
+	if(this->m_invert)
+		speed = -speed;
 
 	//calculate desired pulsewidth, corresponding to float
 	int pulsewidth_us;

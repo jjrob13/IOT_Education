@@ -7,7 +7,7 @@ using std::cout;
 using std::endl;
 int main()
 {
-	ServoController servo(3);
+	ServoController servo(6, true);
 	servo.set_speed(1);
 	sleep(5);
 	servo.set_speed(0);
