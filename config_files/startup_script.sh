@@ -7,6 +7,6 @@ opkg update
 opkg install git
 git clone https://github.com/jjrob13/IOT_Education.git
 chmod +x IOT_Education/config_files/on_boot.sh
-cp IOT_Education/config_files/on_boot.service /lib/systemd/system 
+cp IOT_Education/config_files/on_boot.service /lib/systemd/system/
 systemctl enable on_boot.service
 systemctl start on_boot.service
