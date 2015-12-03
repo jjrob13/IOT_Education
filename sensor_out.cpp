@@ -377,7 +377,7 @@ init_sensors_and_servos()
 
 	//Insert servos into servo map
 	servo_map[SERVO1_PIN] = new ServoController(SERVO1_PIN);
-	servo_map[SERVO2_PIN] = new ServoController(SERVO2_PIN);
+	servo_map[SERVO2_PIN] = new ServoController(SERVO2_PIN, true);
 }
 
 /*
