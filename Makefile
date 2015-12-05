@@ -2,7 +2,7 @@ CC = g++ -std=c++11
 CFLAGS += -Wall -g
 LDFLAGS = -lmraa -lupm-grove -lpthread -lupm-hcsr04
 
-all: thread_test sensor_out
+all: thread_test edison_robot
 
 thread_test: ThreadingTest.o VexMotorController.o
 	${CC} -o $@ ThreadingTest.o VexMotorController.o ${CFLAGS} ${LDFLAGS}
@@ -13,14 +13,14 @@ ThreadingTest.o: ThreadingTest.cpp VexMotorController.h include/grove.h include/
 VexMotorController.o: VexMotorController.cpp
 	${CC} -c VexMotorController.cpp ${CFLAGS} ${LDFLAGS}
 
-sensor_out: sensor_out.o Sensor.o TouchSensor.h UltrasonicSensor.h ServoController.h
-	${CC} -o $@ sensor_out.o Sensor.o ${CFLAGS} ${LDFLAGS}
+edison_robot: edison_robot.o Sensor.o TouchSensor.h UltrasonicSensor.h ServoController.h
+	${CC} -o $@ edison_robot.o Sensor.o ${CFLAGS} ${LDFLAGS}
 
 Sensor.o: Sensor.h Sensor.cpp
 	${CC} -c Sensor.cpp ${CFLAGS} ${LDFLAGS}
 
-sensor_out.o: sensor_out.cpp
-	${CC} -c sensor_out.cpp ${CFLAGS} ${LDFLAGS}
+edison_robot.o: edison_robot.cpp
+	${CC} -c edison_robot.cpp ${CFLAGS} ${LDFLAGS}
 clean:
 	rm -f example *.o *.core *.gch
 
