@@ -27,7 +27,6 @@ ServoController(int pin, bool invert = false)
 	if (this->mraa_pwm == NULL)
 		printf("Error");
 	this->mraa_pwm->enable(true);
-	this->mraa_pwm->period_us(PERIOD_US);
 	this->set_speed(0);
 }
 
@@ -74,7 +73,8 @@ void set_speed(float speed)
 
 	assert(pulsewidth_us >= LOW_PULSEWIDTH_US);
 	assert(pulsewidth_us <= HIGH_PULSEWIDTH_US);
-	//set the correct pulsewidth to the servo
+	//set the correct pulsewidth and period to the servo
+	this->mraa_pwm->period_us(PERIOD_US - pulsewidth_us);
 	this->mraa_pwm->pulsewidth_us(pulsewidth_us);
 
 }
