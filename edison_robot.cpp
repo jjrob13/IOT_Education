@@ -282,6 +282,12 @@ read_servo_controls(void * client_sockfd_)
 		}
 	}
 
+	//When the client disconnects, we want to set all of the servo speeds to zero.
+	for(auto it = servo_map.begin(); it != servo_map.begin(); it++)
+	{
+		it->second->set_speed(0);
+	}
+
 	return NULL;
 
 }
