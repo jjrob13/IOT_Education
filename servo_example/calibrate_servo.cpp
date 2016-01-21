@@ -1,4 +1,4 @@
-#define SERVO_PORT 9
+#define SERVO_PORT 5
 #include <unistd.h>
 #include <mraa.hpp>
 #include <upm/servo.h>
@@ -16,8 +16,13 @@ void calibrate_servo()
 	if (pwm == NULL)
 		printf("Error");
 
+	//this is just to kill any previous servos
+	pwm->enable(false);
+	sleep(1);
+
+	//this is for calibration
 	pwm->enable(true);
-	pwm->period_us(PERIOD_US - NEUTRAL_PULSEWIDTH_US);
+	pwm->period_us(PERIOD_US);
 	pwm->pulsewidth_us(NEUTRAL_PULSEWIDTH_US);
 	
 	//should be enough time
@@ -27,20 +32,22 @@ void calibrate_servo()
 
 }
 
-void sweep()
+void sweep(int port_num)
 {
-	Pwm * pwm = new Pwm(SERVO_PORT);
+	Pwm * pwm = new Pwm(port_num);
 	if (pwm == NULL)
 		printf("Error");
 	pwm->enable(true);
+	pwm->period_us(PERIOD_US);
 
 	for(int i = 5; i <= 40; i++)
 	{
 	printf("i = %d\n", i);
-	pwm->period_us(PERIOD_US - (100 * i));
 	pwm->pulsewidth_us(i * 100);
 	sleep(1);
 	}
+
+	pwm->enable(false);
 	
 	delete pwm;
 
@@ -88,17 +95,17 @@ void calibrate_servo_duty_cycle()
 	delete pwm;
 }
 
-void test_servo()
+void test_servo(int port_number)
 {
-	Pwm * pwm = new Pwm(SERVO_PORT);
+	Pwm * pwm = new Pwm(port_number);
 	if (pwm == NULL)
 		printf("Error");
 
 	pwm->period_ms(20);
 	pwm->enable(true);
-	pwm->pulsewidth_us(1500);
-	sleep(3);
 	pwm->pulsewidth_us(2000);
+	sleep(3);
+	pwm->pulsewidth_us(1500);
 	sleep(3);
 	pwm->pulsewidth_us(1000);
 	sleep(3);
@@ -191,22 +198,13 @@ spin_cw()
 
 
 }
+
 int main(int argc, char* argv[])
 {
 if(argc == 1)
-sweep();
-else if(atoi(argv[1]) == 1)
 calibrate_servo();
-else if(atoi(argv[1]) == 2)
-upm_servo_sweep();
-else if(atoi(argv[1]) == 3)
-sweep2();
-else if(atoi(argv[1]) == 4)
-spin_ccw();
-else if(atoi(argv[1]) == 5)
-spin_cw();
-else if(atoi(argv[1]) == 6)
-calibrate_servo_verbose();
+else if(argc == 2)
+test_servo(atoi(argv[1]));
 return 0;	
 }
 

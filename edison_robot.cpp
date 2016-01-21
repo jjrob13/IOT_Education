@@ -259,7 +259,16 @@ read_servo_controls(void * client_sockfd_)
 		input = input.substr(0, input.find('\n'));
 		
 		inputJson.Parse(input.c_str());
-		rapidjson::Value &servos = inputJson["servos"];
+
+		if(!(inputJson.IsObject() && inputJson.HasMember("servos")))
+		{
+			//invalid json was received.
+			cout << "Bad JSON received; got:" << endl << input << endl;
+			continue;
+		}
+		//If we get this far, we successfully parsed the json
+		rapidjson::Value & servos = inputJson["servos"];
+
 		for (rapidjson::SizeType i = 0; i < servos.Size(); i++)
 		{
 			// Each value is an object.

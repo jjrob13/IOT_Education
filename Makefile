@@ -22,5 +22,5 @@ Sensor.o: Sensor.h Sensor.cpp
 edison_robot.o: edison_robot.cpp
 	${CC} -c edison_robot.cpp ${CFLAGS} ${LDFLAGS}
 clean:
-	rm -f example *.o *.core *.gch
+	rm -f example *.o *.core *.gch ./*~
 

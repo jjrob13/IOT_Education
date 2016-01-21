@@ -5,14 +5,19 @@
 
 using std::cout;
 using std::endl;
-int main()
+int main(int argc, char ** argv)
 {
-	ServoController servo(6, true);
-	servo.set_speed(1);
-	sleep(5);
+	if(argc == 1)
+	{
+		cout << "Usage: <prog-name> <pin-num>" << endl;
+		return -1;
+	}
+	ServoController servo(atoi(argv[1]), true);
+	servo.set_speed(0.3);
+	sleep(3);
 	servo.set_speed(0);
-	sleep(5);
-	servo.set_speed(-1);	
-	sleep(5);
+	sleep(3);
+	servo.set_speed(-0.3);	
+	sleep(3);
 return 0;
 }

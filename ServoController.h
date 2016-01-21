@@ -4,10 +4,11 @@
 #include <cassert>
 #include <iostream>
 #include <mraa.hpp>
+#include <math.h>
 #define PERIOD_US 20000
-#define HIGH_PULSEWIDTH_US 1700
+#define HIGH_PULSEWIDTH_US 1850
 #define NEUTRAL_PULSEWIDTH_US 1500
-#define LOW_PULSEWIDTH_US 1300
+#define LOW_PULSEWIDTH_US 1150
 using std::cout;
 using std::endl;
 using std::round;
@@ -26,7 +27,10 @@ ServoController(int pin, bool invert = false)
 	this->mraa_pwm = new mraa::Pwm(pin);
 	if (this->mraa_pwm == NULL)
 		printf("Error");
+	//init pwm communication
 	this->mraa_pwm->enable(true);
+	this->mraa_pwm->period_us(PERIOD_US);
+
 	this->set_speed(0);
 }
 
@@ -74,7 +78,6 @@ void set_speed(float speed)
 	assert(pulsewidth_us >= LOW_PULSEWIDTH_US);
 	assert(pulsewidth_us <= HIGH_PULSEWIDTH_US);
 	//set the correct pulsewidth and period to the servo
-	this->mraa_pwm->period_us(PERIOD_US - pulsewidth_us);
 	this->mraa_pwm->pulsewidth_us(pulsewidth_us);
 
 }
