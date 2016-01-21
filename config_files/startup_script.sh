@@ -1,7 +1,8 @@
 rm -f /etc/opkg/base-feeds.conf
 echo 'src all http://iotdk.intel.com/repos/1.1/iotdk/all
 src x86 http://iotdk.intel.com/repos/1.1/iotdk/x86
-src i586 http://iotdk.intel.com/repos/1.1/iotdk/i586'\
+src i586 http://iotdk.intel.com/repos/1.1/iotdk/i586
+src core2-32 http://iotdk.intel.com/repos/2.0/iotdk/core2-32/'\
  >> /etc/opkg/base-feeds.conf
 opkg update
 opkg install git
