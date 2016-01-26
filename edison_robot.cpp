@@ -33,6 +33,7 @@ void cleanup_sensors_and_servos();
 void add_sensor_to_stream(std::stringstream &outputJson, Sensor * sensor);
 void send_string_to_client(int clientfd, const char * str_to_write);
 void error(const char *msg);
+void stop_servos();
 /* GLOBAL VARS */
 int client_connected; //indicates whether a client is currently being serviced or not
 vector<Sensor*> sensors; //a vector that contains references to all sensors
@@ -160,6 +161,15 @@ listen_and_connect_to_client(int server_sockfd)
 }
 
 /*
+ * Routine Description:
+ * Stop all of the servos and perform any other cleanup that is necessary.
+*/
+void cleanup_after_disconnect()
+{
+	cout << "Client disconnected. Cleaning up." << endl;
+	stop_servos();
+}
+/*
 client_disconnected:
 
 Routine Description:
@@ -176,6 +186,7 @@ client_disconnected(int signum)
 		//when the client unexpectedly disconnects (SIGPIPE), we want to stop sending data and 
 		//begin listening for new clients.  This client_connected integer is used to perform this.
 		client_connected = 0;
+		cleanup_after_disconnect();
 		cout << "Client disconnected" << endl;
 	}
 }
@@ -250,6 +261,8 @@ read_servo_controls(void * client_sockfd_)
 		if (bytes_read <= 0)
 		{
 			client_connected = 0;
+			//stop rotating all servos
+			stop_servos();
 			return NULL;
 		}
 
@@ -284,18 +297,17 @@ read_servo_controls(void * client_sockfd_)
 			//we want to check that we have this servo in our map
 			if(servo_map.count(servoId))
 			{
-				cout << "Updating speed for servo " << servoId << " to " << servoSpeed << endl;
 				//set the desired speed
 				servo_map[servoId]->set_speed(servoSpeed);
 			}
 		}
 	}
 
-	//When the client disconnects, we want to set all of the servo speeds to zero.
-	for(auto it = servo_map.begin(); it != servo_map.begin(); it++)
-	{
-		it->second->set_speed(0);
-	}
+	/*
+	 *NOTE:
+	 * No code here will ever be executed as we return in the while loop.
+	 */
+
 
 	return NULL;
 
@@ -423,4 +435,16 @@ void error(const char *msg)
 {
 	    perror(msg);
 	        exit(1);
+}
+
+/*
+ Routine Desxription:
+ set the speed of all servos to zervs.
+ */
+void stop_servos()
+{
+	for(auto it = servo_map.begin(); it != servo_map.end(); it++)
+	{
+		it->second->set_speed(0);
+	}
 }

@@ -80,6 +80,8 @@ void set_speed(float speed)
 	//set the correct pulsewidth and period to the servo
 	this->mraa_pwm->pulsewidth_us(pulsewidth_us);
 
+	cout << "Updating speed for servo on pin " << this->m_pin << " to " << speed << endl;
+
 }
 };
 #endif
