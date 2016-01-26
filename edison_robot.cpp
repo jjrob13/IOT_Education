@@ -252,6 +252,16 @@ read_servo_controls(void * client_sockfd_)
 
 	rapidjson::Document inputJson;
 	
+	//We only want to issue the servo commands if they differ from the previous commands, so we
+	//are not changing the pwm signal too frequently
+	map<int, int> prev_servo_vals;
+
+	//fill the map, setting each pin speed to 0
+	for(auto it = servo_map.begin(); it != servo_map.end(); it++)
+	{
+		prev_servo_vals[it->first] = 0;
+	}
+
 	while(client_connected)
 	{
 		// We'll clear out the buffer each time to prevent data from being mixed if one message
@@ -297,8 +307,13 @@ read_servo_controls(void * client_sockfd_)
 			//we want to check that we have this servo in our map
 			if(servo_map.count(servoId))
 			{
-				//set the desired speed
-				servo_map[servoId]->set_speed(servoSpeed);
+				//set the desired speed if the servo is found and the speed  differs from the previous desired speed
+				if(prev_servo_vals.find(servoId) != prev_servo_vals.end() && servoSpeed != prev_servo_vals[servoId])
+				{
+					servo_map[servoId]->set_speed(servoSpeed);
+					//update the prev_servo_vals map
+					prev_servo_vals[servoId] = servoSpeed;
+				}
 			}
 		}
 	}

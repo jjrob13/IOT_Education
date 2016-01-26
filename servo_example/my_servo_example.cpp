@@ -13,11 +13,14 @@ int main(int argc, char ** argv)
 		return -1;
 	}
 	ServoController servo(atoi(argv[1]), true);
-	servo.set_speed(0.3);
-	sleep(3);
-	servo.set_speed(0);
-	sleep(3);
-	servo.set_speed(-0.3);	
-	sleep(3);
+	for(int i = 0; i < 3; i++)
+	{
+		servo.set_speed(0.2);
+		sleep(1);
+		servo.set_speed(0);
+		sleep(1);
+		servo.set_speed(-0.2);	
+		sleep(1);
+	}
 return 0;
 }
