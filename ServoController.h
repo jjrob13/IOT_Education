@@ -6,9 +6,9 @@
 #include <mraa.hpp>
 #include <math.h>
 #define PERIOD_US 20000
-#define HIGH_PULSEWIDTH_US 1850
+#define HIGH_PULSEWIDTH_US 1750
 #define NEUTRAL_PULSEWIDTH_US 1500
-#define LOW_PULSEWIDTH_US 1150
+#define LOW_PULSEWIDTH_US 1250
 using std::cout;
 using std::endl;
 using std::round;

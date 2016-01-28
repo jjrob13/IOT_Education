@@ -438,7 +438,7 @@ cleanup_sensors_and_servos()
 	}
 
 	//Cleanup all ServoController objects
-	for(auto it = servo_map.begin(); it != servo_map.begin(); it++)
+	for(auto it = servo_map.begin(); it != servo_map.end(); it++)
 	{
 		//We are deleting all of the ServoController objects in the map
 		delete it->second;
