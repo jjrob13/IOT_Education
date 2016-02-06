@@ -5,6 +5,7 @@ src/gz core2-32 http://repo.opkg.net/edison/repo/core2-32'\
  >> /etc/opkg/base-feeds.conf
 opkg update
 opkg install git
+opkg install boost boost-dev
 git clone https://github.com/jjrob13/IOT_Education.git
 (cd IOT_Education; make edison_robot; make clean)
 chmod +x IOT_Education/config_files/on_boot.sh
