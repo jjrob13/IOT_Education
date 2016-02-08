@@ -85,8 +85,13 @@ public:
 	Read from the ultrasonic sensor and return the value
 	*/
 //we will try to read from the ultrasonic sensor NUM_ATTEMPTS times, each time giving it TIMEOUT_MS seconds to respond
-#define NUM_ATTEMPTS 20
-#define TIMEOUT_MS 20
+/*
+   In the case where the sensor fails to 
+ */
+//25 attempts might be generous, but we can lower this to around 5 or so if we need to.
+#define NUM_ATTEMPTS 25
+//Intel's upm GroveUltrasonic Sensor uses a timeout of 25 ms, so we will do that as well.
+#define TIMEOUT_MS 25
 
 	float
 	value()
@@ -109,8 +114,12 @@ public:
 			pthread_cancel(t.native_handle());
 		}
 
-		throw runtime_error("Failed to get distance from distance sensor.");
-		return this->m_ultrasonicSensor->getDistance(CM);
+		//The Intel upm library returns a value of 0 if a reading was unable to be obtained, we will do that as well.
+		//As we never want the students to have to ssh into the Edison, consistent we will not throw an exception here, though
+		//we could.
+		//throw runtime_error("Failed to get distance from distance sensor.");
+		//Consistent distance readings of 0 will indicate to the students that their ultrasonic sensor is beginning to degrade.
+		return 0; 
 	}
 
 protected:
