@@ -1,4 +1,4 @@
-#this script is ment to be run from the root directory
+eval cd ~
 rm -f /etc/opkg/base-feeds.conf
 echo 'src/gz all http://repo.opkg.net/edison/repo/all
 src/gz edison http://repo.opkg.net/edison/repo/edison
