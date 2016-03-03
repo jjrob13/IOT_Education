@@ -10,9 +10,9 @@
 #define GPIO_PIN 13
 
 using mraa::Pwm;
-void calibrate_servo()
+void calibrate_servo(int portno)
 {
-	Pwm * pwm = new Pwm(SERVO_PORT);
+	Pwm * pwm = new Pwm(portno);
 	if (pwm == NULL)
 		printf("Error");
 
@@ -201,10 +201,10 @@ spin_cw()
 
 int main(int argc, char* argv[])
 {
-if(argc == 1)
-calibrate_servo();
+if(argc != 2)
+printf("usage: %s <servo-pin>", argv[0]);
 else if(argc == 2)
-test_servo(atoi(argv[1]));
+calibrate_servo(atoi(argv[1]));
 return 0;	
 }
 
