@@ -3,6 +3,7 @@
 #include <mraa.hpp>
 #include "Sensor.h"
 #include "TouchSensor.h"
+#include "LightSensor.h"
 #include "UltrasonicSensor.h"
 #include "ServoController.h"
 // JSON Library: https://github.com/miloyip/rapidjson

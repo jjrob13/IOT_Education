@@ -7,13 +7,19 @@ all: thread_test edison_robot
 thread_test: ThreadingTest.o VexMotorController.o
 	${CC} -o $@ ThreadingTest.o VexMotorController.o ${CFLAGS} ${LDFLAGS}
 
+light_sensor: Sensor.o light_sensor.o
+	${CC} -o $@ light_sensor.o ${CFLAGS} ${LDFLAGS}
+
+light_sensor.o: light_sensor.cpp
+	${CC} -c light_sensor.cpp ${CFLAGS} ${LDFLAGS}
+
 ThreadingTest.o: ThreadingTest.cpp VexMotorController.h include/grove.h include/rapidjson
 	${CC} -c ThreadingTest.cpp ${CFLAGS} ${LDFLAGS}
 
 VexMotorController.o: VexMotorController.cpp
 	${CC} -c VexMotorController.cpp ${CFLAGS} ${LDFLAGS}
 
-edison_robot: edison_robot.o Sensor.o TouchSensor.h UltrasonicSensor.h ServoController.h
+edison_robot: edison_robot.o Sensor.o TouchSensor.h UltrasonicSensor.h ServoController.h LightSensor.h
 	${CC} -o $@ edison_robot.o Sensor.o ${CFLAGS} ${LDFLAGS}
 
 Sensor.o: Sensor.h Sensor.cpp
