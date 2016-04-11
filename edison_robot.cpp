@@ -412,11 +412,17 @@ Routine Description:
 #define US1_ECHO_PIN 12
 #define SERVO1_PIN 5
 #define SERVO2_PIN 6
+#define LIGHT_SENSOR_PIN 0
+
+#define TOUCH_ID 0
+#define ULTRASONIC_ID 1
+#define LIGHT_SENSOR_ID 2
 void
 init_sensors_and_servos()
 {
-	sensors.push_back(new TouchSensor(TOUCH_PIN1, 0));
-	sensors.push_back(new UltrasonicSensor(US1_TRIG_PIN, US1_ECHO_PIN, 1));
+	sensors.push_back(new TouchSensor(TOUCH_PIN1, TOUCH_ID));
+	sensors.push_back(new UltrasonicSensor(US1_TRIG_PIN, US1_ECHO_PIN, ULTRASONIC_ID));
+	sensors.push_back(new LightSensor(LIGHT_SENSOR_PIN, LIGHT_SENSOR_ID));
 
 	//Insert servos into servo map
 	servo_map[SERVO1_PIN] = new ServoController(SERVO1_PIN);
