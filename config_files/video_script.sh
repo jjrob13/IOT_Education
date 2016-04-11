@@ -1,4 +1,5 @@
 #will install and start the video server
+#the video stream can be accessed at any browser at: http://<edison-url>:8090/webcam.mjpeg
 (cd ~
 opkg install kernel-module-uvcvideo
 cp IOT_Education/config_files/ffmpeg_files/ffserver.conf /etc
