@@ -19,11 +19,18 @@ ThreadingTest.o: ThreadingTest.cpp VexMotorController.h include/grove.h include/
 VexMotorController.o: VexMotorController.cpp
 	${CC} -c VexMotorController.cpp ${CFLAGS} ${LDFLAGS}
 
+test_config: test_config.o SensorConfig.h Sensor.o TouchSensor.h UltrasonicSensor.h ServoController.h LightSensor.h
+	${CC} -o $@ test_config.o Sensor.o ${CFLAGS} ${LDFLAGS}
+
+
 edison_robot: edison_robot.o Sensor.o TouchSensor.h UltrasonicSensor.h ServoController.h LightSensor.h
 	${CC} -o $@ edison_robot.o Sensor.o ${CFLAGS} ${LDFLAGS}
 
 Sensor.o: Sensor.h Sensor.cpp
 	${CC} -c Sensor.cpp ${CFLAGS} ${LDFLAGS}
+
+test_config.o: test_config.cpp SensorConfig.h 
+	${CC} -c test_config.cpp ${CFLAGS} ${LDFLAGS}
 
 edison_robot.o: edison_robot.cpp
 	${CC} -c edison_robot.cpp ${CFLAGS} ${LDFLAGS}

@@ -16,11 +16,11 @@
 #include <boost/assign.hpp>
 #include <boost/function.hpp>
 #include "Sensor.h"
-/*
 #include "TouchSensor.h"
 #include "LightSensor.h"
 #include "UltrasonicSensor.h"
-*/
+#include "ServoController.h"
+
 using namespace rapidjson;
 using namespace std;
 using namespace boost::assign;
@@ -46,10 +46,9 @@ public:
 	Note: sensor_json should contain only a single key corresponding to the 
 	sensor type that is being created
 	*/
-/*
-	static Sensor * allocAndInitSensor(Value & sensor_json)
+	static Sensor * allocAndInitSensor(const Value & sensor_json)
 	{
-		if(sensor_json.MemberCount != 1){
+		if(sensor_json.MemberCount() != 1){
 			throw logic_error("Should only be one sensor present.");
 		}
 		
@@ -57,7 +56,7 @@ public:
 		//for additional sensors
 		if(sensor_json.HasMember(ULTRASONIC_SENSOR_KEY)) {
 			int trig = sensor_json[ULTRASONIC_SENSOR_KEY][TRIG_KEY].GetInt();
-			int echo = sensor_json[ULTRASONIC_SENSOR_KEY][EHCO_KEY].GetInt();
+			int echo = sensor_json[ULTRASONIC_SENSOR_KEY][ECHO_KEY].GetInt();
 			int id = sensor_json[ULTRASONIC_SENSOR_KEY][ID_KEY].GetInt();
 			return new UltrasonicSensor(trig, echo, id);
 		}
@@ -80,7 +79,6 @@ public:
 		return NULL;
 
 	}
-*/
 
 	SensorConfig()
 	{
@@ -120,7 +118,6 @@ public:
 	Memory is currently freed in the cleanup_sensors_and_servos routine in edison_config
 
 	*/
-/*
 	void createSensorsAndServos(vector<Sensor *> & sensors,
 		map<int, ServoController *> & servo_map){
 		
@@ -130,10 +127,11 @@ public:
 
 	void parseAndCreateSensors(vector<Sensor*> & sensors)
 	{
-		if(!this->json_doc.HasMember(SENSOR_KEY))
+		if(!this->json_doc.HasMember(SENSOR_KEY)){
 			return; //Nothing to parse
+		}
 
-		json_sensors = this->json_doc[SENSOR_KEY];
+		const Value & json_sensors = this->json_doc[SENSOR_KEY];
 		assert(json_sensors.IsArray());
 		for(auto it = json_sensors.Begin(); it != json_sensors.End(); it++)
 		{
@@ -141,7 +139,7 @@ public:
 			Sensor * new_sensor = allocAndInitSensor(*it);
 
 			//add the new sensor to the sensors vector
-			sensors.push_back(new_sensor)
+			sensors.push_back(new_sensor);
 		}
 	}
 
@@ -150,7 +148,6 @@ public:
 		//TODO: Implement
 
 	}
-*/
 
 	//NOTE: For new sensor support, one of these should be implemented as well for
 	//ease of configuration creation
