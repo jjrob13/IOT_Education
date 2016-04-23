@@ -34,6 +34,7 @@ using namespace boost::assign;
 #define TRIG_KEY "trig"
 #define ECHO_KEY "echo"
 #define PIN_KEY "pin"
+#define INVERTED_KEY "inverted"
 
 class SensorConfig{
 public:
@@ -78,6 +79,22 @@ public:
 		throw logic_error("Unknown sensor type");
 		return NULL;
 
+	}
+
+	static ServoController * allocAndInitServo(const Value & servo_json)
+	{
+		//{"pin" : 5}
+		if(!servo_json.HasMember(PIN_KEY)){
+			throw logic_error("No pin key for servo json");
+		}
+
+		//If there is a boolean specified for the inverted param, include it
+		if(servo_json.HasMember(INVERTED_KEY)){
+			return new ServoController(servo_json[PIN_KEY].GetInt(),
+					servo_json[INVERTED_KEY].GetBool());
+		}
+
+		return new ServoController(servo_json[PIN_KEY].GetInt());
 	}
 
 	SensorConfig()
@@ -145,7 +162,20 @@ public:
 
 	void parseAndCreateServos(map<int, ServoController *> & servo_map)
 	{
-		//TODO: Implement
+		if(!this->json_doc.HasMember(SERVO_KEY)){
+			return; //Nothing to parse
+		}
+
+		const Value & json_servos = this->json_doc[SERVO_KEY];
+		assert(json_servos.IsArray());
+		for(auto it = json_servos.Begin(); it != json_servos.End(); it++)
+		{
+			//Create the servo object and create it
+			ServoController * new_servo = allocAndInitServo(*it);
+
+			//add the new sensor to the sensors vector
+			servo_map[new_servo->m_pin] = new_servo;
+		}
 
 	}
 
@@ -193,12 +223,16 @@ public:
 
 	}
 
-	void addServo(int pin){
-		//overload
-		addServo(pin, pin);
+	void addServo(int pin, bool inverted){
+		addServo(pin, pin, inverted);
 	}
 
-	void addServo(int pin, int id)
+	void addServo(int pin){
+		//overload
+		addServo(pin, pin, false);
+	}
+
+	void addServo(int pin, int id, bool inverted)
 	{
 		//create the servos array if it does not exist in the json_doc
 		if(!this->json_doc.HasMember(SERVO_KEY)){
@@ -210,6 +244,7 @@ public:
 		Value servo_obj(kObjectType);
 		myAddMember(servo_obj, PIN_KEY, pin);
 		myAddMember(servo_obj, ID_KEY, id);
+		myAddMember(servo_obj, INVERTED_KEY, inverted);
 		
 		//add servo to the array
 		this->json_doc[SERVO_KEY].PushBack(servo_obj, this->json_doc.GetAllocator());
@@ -238,6 +273,12 @@ public:
 	void myAddMember(Value & json_obj, const char * key, int i)
 	{
 		json_obj.AddMember(Value(key, strlen(key), this->json_doc.GetAllocator()), Value(i), this->json_doc.GetAllocator());
+
+	}
+
+	void myAddMember(Value & json_obj, const char * key, bool b)
+	{
+		json_obj.AddMember(Value(key, strlen(key), this->json_doc.GetAllocator()), Value(b), this->json_doc.GetAllocator());
 
 	}
 
