@@ -22,9 +22,15 @@ public:
 	//currently.  There was no way to bind (I tried std::bind) an HCSR04 instance to a function call.  I already submitted a pull request to upm
 	//proposing a change.
 	static upm::HCSR04 * ultrasonicSensor1;	
+	static upm::HCSR04 * ultrasonicSensor2;	
 	
 	//This is a necessary interrupt callback for the ultrasonic sensor	
 	static void interrupt1(void * args)
+	{
+		UltrasonicSensor::ultrasonicSensor1->ackEdgeDetected();
+	}
+
+	static void interrupt2(void * args)
 	{
 		UltrasonicSensor::ultrasonicSensor1->ackEdgeDetected();
 	}
@@ -41,8 +47,12 @@ public:
 			UltrasonicSensor::ultrasonicSensor1 = new upm::HCSR04(trig_pin, echo_pin, &UltrasonicSensor::interrupt1);
 			return UltrasonicSensor::ultrasonicSensor1;
 		}
-		else
+		else if(UltrasonicSensor::ultrasonicSensor2 == NULL)
 		{
+			UltrasonicSensor::ultrasonicSensor2 = new upm::HCSR04(trig_pin, echo_pin, &UltrasonicSensor::interrupt2);
+			return UltrasonicSensor::ultrasonicSensor2;
+
+		}else{
 			//we were unable to find an available sensor
 			throw std::runtime_error("Unable to allocate additional HCSR04 sensor.  Not enough static sensors");
 		}
@@ -131,6 +141,7 @@ private:
 };
 
 upm::HCSR04 * UltrasonicSensor::ultrasonicSensor1 = NULL;	
+upm::HCSR04 * UltrasonicSensor::ultrasonicSensor2 = NULL;	
 
 #endif
 
