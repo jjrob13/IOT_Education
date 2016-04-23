@@ -35,5 +35,5 @@ test_config.o: test_config.cpp SensorConfig.h
 edison_robot.o: edison_robot.cpp
 	${CC} -c edison_robot.cpp ${CFLAGS} ${LDFLAGS}
 clean:
-	rm -f example *.o *.core *.gch ./*~
+	rm -f example *.o *.core *.gch ./*~ ./.*~
 

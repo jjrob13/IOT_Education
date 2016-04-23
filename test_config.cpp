@@ -14,6 +14,8 @@ vector<Sensor *> sensors;
 map<int, ServoController *> servo_map;
 
 c.addUltrasonicSensor(13, 12, 1);
+c.addUltrasonicSensor(13, 12, 1);
+c.addUltrasonicSensor(13, 12, 1);
 c.addServo(5);
 c.createSensorsAndServos(sensors, servo_map);
 

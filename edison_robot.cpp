@@ -1,7 +1,9 @@
 
+#include <fstream>
 #include <pthread.h>
 #include <mraa.hpp>
 #include "Sensor.h"
+#include "SensorConfig.h"
 #include "TouchSensor.h"
 #include "LightSensor.h"
 #include "UltrasonicSensor.h"
@@ -22,6 +24,7 @@
 using std::vector;
 using std::map;
 using std::string;
+using std::ifstream;
 
 int open_server_socket();
 int listen_and_connect_to_client(int);
@@ -29,7 +32,9 @@ void service_client(int);
 void client_disconnected(int);
 void * write_sensor_data(void *);
 void * read_servo_controls(void *);
+bool file_exists(const char *);
 void init_sensors_and_servos();
+void init_sensors_and_servos(char *);
 void cleanup_sensors_and_servos();
 void add_sensor_to_stream(std::stringstream &outputJson, Sensor * sensor);
 void send_string_to_client(int clientfd, const char * str_to_write);
@@ -59,11 +64,23 @@ Routine Description:
 5. Go to 2.
 
 */
-int main()
+int main(int argc, char ** argv)
 {
 	int server_sockfd, client_sockfd;
 	
-	init_sensors_and_servos();
+	if(argc == 2){
+		
+		if(!file_exists(argv[1])){
+			cout << argv[1] << " (passed config file) does not exist" << endl;
+			return -1;
+		}
+
+		init_sensors_and_servos(argv[1]);
+	}
+	else{
+		//default sensor configuration
+		init_sensors_and_servos();
+	}
 
 	server_sockfd = open_server_socket();
 	signal(SIGPIPE, client_disconnected);
@@ -417,16 +434,42 @@ Routine Description:
 #define TOUCH_ID 0
 #define ULTRASONIC_ID 1
 #define LIGHT_SENSOR_ID 2
+#define DEFAULT_CONFIG_FILE ".edison_config.json"
+
+void create_and_save_default_config()
+{
+	SensorConfig s;
+	s.addTouchSensor(TOUCH_PIN1, TOUCH_ID);
+	s.addUltrasonicSensor(US1_TRIG_PIN, US1_ECHO_PIN, ULTRASONIC_ID);
+	s.addLightSensor(LIGHT_SENSOR_PIN, LIGHT_SENSOR_ID);
+	s.addServo(SERVO1_PIN);
+	s.addServo(SERVO2_PIN, true);
+	s.saveConfigFile(DEFAULT_CONFIG_FILE);
+}
+
+bool file_exists(const char * filename)
+{
+	ifstream f(filename);
+	return f.good();
+}
+
+//Overload to use default config
 void
 init_sensors_and_servos()
 {
-	sensors.push_back(new TouchSensor(TOUCH_PIN1, TOUCH_ID));
-	sensors.push_back(new UltrasonicSensor(US1_TRIG_PIN, US1_ECHO_PIN, ULTRASONIC_ID));
-	sensors.push_back(new LightSensor(LIGHT_SENSOR_PIN, LIGHT_SENSOR_ID));
+	if(!file_exists(DEFAULT_CONFIG_FILE))
+		create_and_save_default_config();
 
-	//Insert servos into servo map
-	servo_map[SERVO1_PIN] = new ServoController(SERVO1_PIN);
-	servo_map[SERVO2_PIN] = new ServoController(SERVO2_PIN, true);
+	init_sensors_and_servos(DEFAULT_CONFIG_FILE);
+}
+
+void
+init_sensors_and_servos(char * config_file)
+{
+	//assumes config_file has already been created
+	SensorConfig s;
+	s.loadConfigFile(config_file);
+	s.createSensorsAndServos(sensors, servo_map);
 }
 
 /*

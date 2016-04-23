@@ -1,0 +1,1 @@
+{"sensors":[{"touch_sensor":{"pin":2,"id":0}},{"ultrasonic_sensor":{"trig":13,"echo":12,"id":1}},{"light_sensor":{"pin":0,"id":2}}],"servos":[{"pin":5,"id":5,"inverted":false},{"pin":6,"id":6,"inverted":true}]}
